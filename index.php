@@ -308,7 +308,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
         <div class="form">
             <span>File name</span> <span id="detailsName"></span>
-            <span>Folder</span> <span id="detailsFolder"></span>
         </div>
         <p id="json"></p>
 
@@ -543,7 +542,6 @@ const $ = document.querySelector.bind(document);
 const $tb = $('tbody');
 const $preview = $('#preview');
 const $detailsName = $('#detailsName');
-const $detailsFolder = $('#detailsFolder');
 const $drop = $('.drop-area label');
 const $body = $('body');
 const $globalProgress = $('#global-progress');
