@@ -22,7 +22,6 @@ const CHUNK_SIZE = 1024 * 1024;
 const MAX_FILE_SIZE = 1024 * 1024 * 1024;
 
 
-
 error_reporting(E_ALL);
 
 $error_types = array(
@@ -94,7 +93,10 @@ function handle_uploaded_file($tmpPath, $name) {
 }
 
 function lock($path, $type=LOCK_EX) {
-    $fd = fopen($path, 'r+');
+    $fd = @fopen($path, 'r+');
+    if (!$fd) {
+        throw new Exception("Failed to open lockfile $path");
+    }
     while (!flock($fd, $type)) {
     }
     return $fd;
@@ -267,6 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     http_response_code(200);
 
 ?><!DOCTYPE html>
+<html>
 <head>
     <title>Photo Upload</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -514,7 +517,7 @@ async function upload(file, statusCallback) {
 
     statusCallback(info);
 
-    async function uploadChunk(blob, chunkIndex) {
+    async function uploadChunk(blob, chunkIndex, numTries=0) {
         const formData = new FormData();
         formData.append('file', blob, file.name);
         formData.append('chunk_index', String(chunkIndex));
@@ -523,8 +526,24 @@ async function upload(file, statusCallback) {
             method: 'POST',
             body: formData
         });
-        const json = await res.json();
-        statusCallback(json);
+
+        let failure = false;
+
+        try {
+            const json = await res.json();
+            if (json.status != 'success') {
+                failure = true;
+            } else {
+                statusCallback(json);
+            }
+        } catch (e) {
+            failure = true;
+        }
+
+        if (failure && numTries < 5) {
+            console.log("trying again", numTries);
+            enqueueTransfer(() => uploadChunk(blob, chunkIndex, numTries + 1));
+        }
     }
 
     for (let i = 0; i < numChunks; i++) {
@@ -725,7 +744,7 @@ $preview.addEventListener('error', e => {
     $preview.classList.remove('loaded');
 });
 </script>
-
+</html>
 <?php
 } else {
     http_response_code(502);
