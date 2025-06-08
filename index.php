@@ -274,6 +274,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Photo Upload</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <link rel="manifest" href="/photo-upload-manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
 
@@ -619,7 +622,7 @@ async function uploadFiles(files) {
         formData.append('file', file);
 
         const url = URL.createObjectURL(file);
-        
+
         const $tr = document.createElement('tr');
         const $name = document.createElement('td');
         const $status = document.createElement('td');
@@ -636,7 +639,7 @@ async function uploadFiles(files) {
             $preview.src = url;
             $detailsName.textContent = file.name;
         });
-        
+
         async function uploadThisFile() {
             try {
                 await upload(file, status => {
